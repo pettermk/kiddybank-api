@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Kid REST service</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
+    <!-- Load AngularJS -->
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+    <script type="text/javascript">
+      var app = angular.module("KidManagement", []);
+
+      //Controller Part
+      app.controller("KidManagementController", function ($scope, $http) {
+
+        //Initialize page with default data which is blank in this example
+        $scope.kids = [];
+
+        $scope.form = {
+          name: "",
+          initial_balance: 0.0
+        };
+
+        //Now load the data from server
+        _refreshPageData();
+
+        //HTTP POST methods for add kids
+        $scope.add = function () {
+          var data = { "name": $scope.form.name, "initial_balance": $scope.form.description };
+
+          $http({
+            method: "POST",
+            url: '/kids',
+            data: angular.toJson(data),
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }).then(_success, _error);
+        };
+
+        /* Private Methods */
+        //HTTP GET- get all kids collection
+        function _refreshPageData() {
+          $http({
+            method: 'GET',
+            url: '/kids'
+          }).then(function successCallback(response) {
+            $scope.kids = response.data;
+          }, function errorCallback(response) {
+            console.log(response.statusText);
+          });
+        }
+
+        function _success(response) {
+          _refreshPageData();
+          _clearForm();
+        }
+
+        function _error(response) {
+          alert(response.data.message || response.statusText);
+        }
+
+        //Clear the form
+        function _clearForm() {
+          $scope.form.name = "";
+          $scope.form.initial_balance = "";
+        }
+      });
+    </script>
+</head>
+<body ng-app="KidManagement" ng-controller="KidManagementController">
+
+<div class="container">
+    <h1>REST Service - Kid</h1>
+
+    <h3>Add a kid</h3>
+    <form ng-submit="add()">
+        <div class="row">
+            <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
+        </div>
+        <div class="row">
+            <div class="col-6"><input type="text" placeholder="Description" ng-model="form.description" size="60"/></div>
+        </div>
+        <input type="submit" value="Save"/>
+    </form>
+
+    <h3>Kid List</h3>
+    <div class="row">
+        <div class="col-4">Name</div>
+        <div class="col-8">Initial Balance</div>
+    </div>
+    <div class="row" ng-repeat="kid in kids">
+        <div class="col-4">{{ kid.name }}</div>
+        <div class="col-8">{{ kid.initial_balance }}</div>
+    </div>
+</div>
+
+</body>
+</html>
