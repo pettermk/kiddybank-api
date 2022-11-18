@@ -44,9 +44,12 @@ jobs:
             type=ref,event=branch
             type=sha
       - name: Install graalvm
-        uses: DeLaGuardo/setup-graalvm@3
+        uses: graalvm/setup-graalvm@v1
         with:
-          graalvm-version: '20.0.0.java11'
+          version: 'latest'
+          java-version: '17'
+          components: 'native-image'
+      #     github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Install native-image
         run: gu install native-image
       - name: Set version
@@ -58,8 +61,6 @@ jobs:
       #     curl -Ls https://sh.jbang.dev | bash -s - trust add https://repo1.maven.org/maven2/io/quarkus/quarkus-cli/
       #     curl -Ls https://sh.jbang.dev | bash -s - app install --fresh --force quarkus@quarkusio
       #     quarkus --version
-      - name: Build app
-        run: quarkus build -Pnative
 
       # Build and push Docker image with Buildx (don't push on PR)
       # https://github.com/docker/build-push-action
