@@ -5,6 +5,8 @@ import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.QueryHint;
@@ -18,28 +20,21 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
     hints = @QueryHint(name = "org.hibernate.cacheable", value = "true")
 )
 public class Kid {
-    private Long id;
+    @Id
+    @SequenceGenerator(name = "kidSeq", sequenceName = "kid_id_seq", allocationSize = 1, initialValue = 1)
+    @GeneratedValue(generator="kidSeq")
+    public Long id;
     public String name;
     public double initial_balance;
+    
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name="kiddybankuser_id", nullable=false)
+    public KiddyBankUser kiddybankuser;
 
     @JsonIgnore
     @OneToMany(mappedBy="kid", cascade = CascadeType.ALL)
     Set<Transaction> transactions = new HashSet<Transaction>();
-
-    // public Set<Transaction> getTransactions() {
-    //     return transactions;
-    // }
-
-    @Id
-    @SequenceGenerator(name = "kidSeq", sequenceName = "kid_id_seq", allocationSize = 1, initialValue = 1)
-    @GeneratedValue(generator="kidSeq")
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public Kid() {
     }
