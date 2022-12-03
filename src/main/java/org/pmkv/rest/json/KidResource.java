@@ -37,6 +37,7 @@ public class KidResource {
             KiddyBankUser.class,
             kidDto.user_id);
         Kid kid = new Kid(
+            user,
             kidDto.name,
             kidDto.initial_balance
         );

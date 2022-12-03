@@ -39,7 +39,8 @@ public class Kid {
     public Kid() {
     }
 
-    public Kid(String name, double initial_balance) {
+    public Kid(KiddyBankUser user, String name, double initial_balance) {
+        this.kiddybankuser = user;
         this.name = name;
         this.initial_balance = initial_balance;
     }
