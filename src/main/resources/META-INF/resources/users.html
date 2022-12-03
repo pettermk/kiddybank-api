@@ -2,38 +2,37 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <title>Kid REST service</title>
+    <title>User REST service</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/wingcss/0.1.8/wing.min.css"/>
     <!-- Load AngularJS -->
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
     <script type="text/javascript">
-      var app = angular.module("KidManagement", []);
+      var app = angular.module("UserManagement", []);
 
       //Controller Part
-      app.controller("KidManagementController", function ($scope, $http) {
+      app.controller("UserManagementController", function ($scope, $http) {
 
         //Initialize page with default data which is blank in this example
-        $scope.kids = [];
+        $scope.users = [];
 
         $scope.form = {
-          user_id: null,
-          name: "",
-          initial_balance: 0.0
+          username: "",
+          external_id: ""
         };
 
         //Now load the data from server
         _refreshPageData();
 
-        //HTTP POST methods for add kids
+        //HTTP POST methods for add users
         $scope.add = function () {
           var data = {
-            "user_id": $scope.form.user_id,
-            "name": $scope.form.name,
-            "initial_balance": $scope.form.initial_balance };
+            "username": $scope.form.username,
+            "external_id": $scope.form.external_id
+          };
 
           $http({
             method: "POST",
-            url: '/kids',
+            url: '/users',
             data: angular.toJson(data),
             headers: {
               'Content-Type': 'application/json'
@@ -42,13 +41,13 @@
         };
 
         /* Private Methods */
-        //HTTP GET- get all kids collection
+        //HTTP GET- get all users collection
         function _refreshPageData() {
           $http({
             method: 'GET',
-            url: '/kids'
+            url: '/users'
           }).then(function successCallback(response) {
-            $scope.kids = response.data;
+            $scope.users = response.data;
           }, function errorCallback(response) {
             console.log(response.statusText);
           });
@@ -65,44 +64,38 @@
 
         //Clear the form
         function _clearForm() {
-          $scope.form.user_id = "";
-          $scope.form.name = "";
-          $scope.form.initial_balance = "";
+          $scope.form.username = "";
+          $scope.form.external_id = "";
         }
       });
     </script>
 </head>
-<body ng-app="KidManagement" ng-controller="KidManagementController">
+<body ng-app="UserManagement" ng-controller="UserManagementController">
 
 <div class="container">
-    <h1>REST Service - Kid</h1>
+    <h1>REST Service - User</h1>
 
-    <h3>Add a kid</h3>
+    <h3>Add a user</h3>
     <form ng-submit="add()">
         <div class="row">
-            <div class="col-6"><input type="text" placeholder="User ID" ng-model="form.user_id" size="60"/></div>
+            <div class="col-6"><input type="text" placeholder="Name" ng-model="form.username" size="60"/></div>
         </div>
         <div class="row">
-            <div class="col-6"><input type="text" placeholder="Name" ng-model="form.name" size="60"/></div>
-        </div>
-        <div class="row">
-            <div class="col-6"><input type="text" placeholder="Initial balance" ng-model="form.initial_balance" size="60"/></div>
+            <div class="col-6"><input type="text" placeholder="External id" ng-model="form.external_id" size="60"/></div>
         </div>
         <input type="submit" value="Save"/>
     </form>
 
-    <h3>Kid List</h3>
+    <h3>User List</h3>
     <div class="row">
         <div class="col-2">Id</div>
-        <div class="col-2">User Id</div>
         <div class="col-4">Name</div>
-        <div class="col-2">Initial Balance</div>
+        <div class="col-2">External Id</div>
     </div>
-    <div class="row" ng-repeat="kid in kids">
-        <div class="col-2">{{ kid.id }}</div>
-        <div class="col-2">{{ kid.user_id }}</div>
-        <div class="col-4">{{ kid.name }}</div>
-        <div class="col-2">{{ kid.initial_balance }}</div>
+    <div class="row" ng-repeat="user in users">
+        <div class="col-2">{{ user.id }}</div>
+        <div class="col-4">{{ user.username }}</div>
+        <div class="col-2">{{ user.external_id }}</div>
     </div>
 </div>
 
