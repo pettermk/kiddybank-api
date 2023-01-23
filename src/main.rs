@@ -1,4 +1,5 @@
 mod jwt;
+mod crud;
 mod models;
 mod schema;
 
@@ -6,13 +7,13 @@ mod schema;
 
 use rocket::http::Status;
 use rocket::request::{self, Outcome, Request, FromRequest};
-use crate::jwt::process_jwt;
+use crate::crud::process_user;
 use crate::models::{User, UserDto};
 
 struct ApiUser<'r>(&'r str);
 
 #[derive(Debug)]
-enum AuthHeaderError {
+pub enum AuthHeaderError {
     Missing,
     Invalid,
 }
@@ -26,7 +27,8 @@ impl<'r> FromRequest<'r> for User {
         async fn get_user(key: &str) -> User {
             let token =
                 key.split(" ").last().expect("Token should be there");
-            process_jwt(token).await.expect("User should resolve")
+            let valid_jwt = jwt::process_jwt(token).await;
+            process_user(&valid_jwt).await
         }
 
         match req.headers().get_one("Authorization") {

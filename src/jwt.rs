@@ -1,4 +1,5 @@
 use alcoholic_jwt::{JWKS, ValidJWT, Validation, validate, token_kid};
+use crate::crud::process_user;
 use reqwest;
 use rocket::serde::json::serde_json;
 use crate::models::{User, UserDto};
@@ -15,7 +16,7 @@ async fn get_jwks() -> JWKS {
 }
 
 
-pub(crate) async fn process_jwt(token: &str) -> Option<User> {
+pub(crate) async fn process_jwt(token: &str) -> ValidJWT {
     // The function implied here would usually perform an HTTP-GET
     // on the JWKS-URL for an authentication provider and deserialize
     // the result into the `alcoholic_jwt::JWKS`-struct.
@@ -25,6 +26,7 @@ pub(crate) async fn process_jwt(token: &str) -> Option<User> {
     let validations = vec![
       Validation::Issuer("https://sts.windows.net/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/".into()),
       Validation::SubjectPresent,
+      // Validation::NotExpired,
     ];
 
     // If a JWKS contains multiple keys, the correct KID first
@@ -35,6 +37,5 @@ pub(crate) async fn process_jwt(token: &str) -> Option<User> {
 
     let jwk = jwks.find(&kid).expect("Specified key not found in set");
 
-    let valid_jwt = validate(token, jwk, validations).expect("Token validation has failed!");
-    Ok(get_user_from_jwt(valid_jwt).await)
+    validate(token, jwk, validations).expect("Token validation has failed!")
 }

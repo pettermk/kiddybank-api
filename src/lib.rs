@@ -1,6 +1,3 @@
-pub mod schema;
-pub mod models;
-pub mod crud;
 
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
