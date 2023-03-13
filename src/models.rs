@@ -1,4 +1,6 @@
 extern crate rocket;
+
+use std::fmt;
 use diesel::{prelude::*};
 // use serde::Serialize;
 use crate::schema::users;
@@ -10,6 +12,12 @@ pub struct User {
     pub first_name: String,
     pub last_name: String,
     pub external_id: String,
+}
+
+impl fmt::Display for User {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "User: {} {} {}", self.id, self.first_name, self.last_name)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
