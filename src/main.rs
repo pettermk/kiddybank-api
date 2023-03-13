@@ -5,10 +5,11 @@ mod schema;
 
 #[macro_use] extern crate rocket;
 
+use rocket::Response;
 use rocket::http::Status;
 use rocket::request::{Outcome, Request, FromRequest};
 use crate::crud::process_user;
-use crate::models::User;
+use crate::models::{User, NewKid};
 
 
 #[derive(Debug)]
@@ -37,6 +38,9 @@ impl<'r> FromRequest<'r> for User {
     }
 }
 
+#[rocket::async_trait]
+impl<'r> FromData<'r> for NewKid {
+}
 
 #[get("/")]
 fn index() -> &'static str {
@@ -45,10 +49,19 @@ fn index() -> &'static str {
 
 #[get("/user")]
 fn user(user: User) -> String {
-    user.first_name
+    user.first_name.to_string()
+}
+
+#[post("/kid)]")]
+fn create_kid(user: User, name: NewKid) -> String {
+    crud::create_kid(&user, name);
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index, user])
+    rocket::build().mount("/", routes![
+        index,
+        user,
+        create_kid
+    ])
 }

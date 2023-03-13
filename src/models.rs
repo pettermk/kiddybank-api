@@ -2,11 +2,10 @@ extern crate rocket;
 
 use std::fmt;
 use diesel::{prelude::*};
-// use serde::Serialize;
-use crate::schema::users;
+use crate::schema::{users, kids};
 
 
-#[derive(Queryable, Clone, Debug)]
+#[derive(Identifiable, Queryable, Clone, Debug)]
 pub struct User {
     pub id: i32,
     pub first_name: String,
@@ -34,4 +33,20 @@ pub struct NewUser {
     pub first_name: String,
     pub last_name: String,
     pub external_id: String,
+}
+
+
+#[derive(Associations, Queryable, Clone, Debug)]
+#[diesel(belongs_to(User))]
+pub struct Kid {
+    pub id: i32,
+    pub name: String,
+    pub user_id: i32,
+}
+
+#[derive(Insertable, Debug)]
+#[diesel(table_name=kids)]
+pub struct NewKid {
+    pub name: String,
+    pub user_id: i32,
 }
