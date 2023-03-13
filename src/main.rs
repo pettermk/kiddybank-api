@@ -6,11 +6,10 @@ mod schema;
 #[macro_use] extern crate rocket;
 
 use rocket::http::Status;
-use rocket::request::{self, Outcome, Request, FromRequest};
+use rocket::request::{Outcome, Request, FromRequest};
 use crate::crud::process_user;
-use crate::models::{User, UserDto};
+use crate::models::User;
 
-struct ApiUser<'r>(&'r str);
 
 #[derive(Debug)]
 pub enum AuthHeaderError {
@@ -34,7 +33,6 @@ impl<'r> FromRequest<'r> for User {
         match req.headers().get_one("Authorization") {
             None => Outcome::Failure((Status::BadRequest, AuthHeaderError::Missing)),
             Some(auth_header) => Outcome::Success(get_user(auth_header).await),
-            Some(_) => Outcome::Failure((Status::BadRequest, AuthHeaderError::Invalid)),
         }
     }
 }
@@ -46,8 +44,8 @@ fn index() -> &'static str {
 }
 
 #[get("/user")]
-fn user(user: User) -> &'static str {
-    "Hello, world!"
+fn user(user: User) -> String {
+    user.first_name
 }
 
 #[launch]

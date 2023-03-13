@@ -1,5 +1,5 @@
 use diesel::{prelude::*, insert_into};
-use alcoholic_jwt::{JWKS, ValidJWT, Validation, validate, token_kid};
+use alcoholic_jwt::ValidJWT;
 use crate::models::{User, NewUser};
 use kiddybank_api::establish_connection;
 use crate::schema::users::dsl::users;

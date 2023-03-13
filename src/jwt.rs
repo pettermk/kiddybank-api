@@ -1,8 +1,6 @@
 use alcoholic_jwt::{JWKS, ValidJWT, Validation, validate, token_kid};
-use crate::crud::process_user;
 use reqwest;
 use rocket::serde::json::serde_json;
-use crate::models::{User, UserDto};
 
 async fn get_jwks() -> JWKS {
     let resp =
