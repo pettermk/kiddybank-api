@@ -5,9 +5,11 @@ mod schema;
 
 #[macro_use] extern crate rocket;
 
-use rocket::Response;
+use rocket::data::{Data, FromData, self};
 use rocket::http::Status;
 use rocket::request::{Outcome, Request, FromRequest};
+use rocket::serde::json::serde_json;
+use rocket::tokio::io::AsyncReadExt;
 use crate::crud::process_user;
 use crate::models::{User, NewKid};
 
@@ -38,9 +40,28 @@ impl<'r> FromRequest<'r> for User {
     }
 }
 
+#[derive(Debug)]
+pub enum KidError {
+    Missing,
+    Invalid,
+}
+
 #[rocket::async_trait]
 impl<'r> FromData<'r> for NewKid {
+    type Error = KidError;
+
+    async fn from_data(_req: &'r Request<'_>, data: Data<'r>) -> data::Outcome<'r, Self> {
+        use rocket::outcome::Outcome::*;
+        let mut data = data.open("256 kB".parse().unwrap());
+        let mut string = String::new();
+        data.read_to_string(&mut string).await;
+        match serde_json::from_str::<NewKid>(&string) {
+            Ok(kid) => Success(kid),
+            Err(_) => Failure((Status::BadRequest, KidError::Invalid)),
+        }
+    }
 }
+
 
 #[get("/")]
 fn index() -> &'static str {
@@ -52,9 +73,9 @@ fn user(user: User) -> String {
     user.first_name.to_string()
 }
 
-#[post("/kid)]")]
-fn create_kid(user: User, name: NewKid) -> String {
-    crud::create_kid(&user, name);
+#[post("/kid", data="<name>")]
+fn create_kid(user: User, name: NewKid) -> () {
+    crud::create_kid(&user, &name);
 }
 
 #[launch]
@@ -62,6 +83,6 @@ fn rocket() -> _ {
     rocket::build().mount("/", routes![
         index,
         user,
-        create_kid
+        create_kid,
     ])
 }

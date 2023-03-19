@@ -2,6 +2,7 @@ extern crate rocket;
 
 use std::fmt;
 use diesel::{prelude::*};
+use rocket::serde::Deserialize;
 use crate::schema::{users, kids};
 
 
@@ -35,18 +36,29 @@ pub struct NewUser {
     pub external_id: String,
 }
 
-
-#[derive(Associations, Queryable, Clone, Debug)]
-#[diesel(belongs_to(User))]
+#[derive(Identifiable, Queryable, Clone, Debug)]
 pub struct Kid {
     pub id: i32,
     pub name: String,
     pub user_id: i32,
 }
 
-#[derive(Insertable, Debug)]
+impl fmt::Display for Kid {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Kid: {}", self.name)
+    }
+}
+
+#[derive(Insertable, Associations, Queryable, Clone, Debug)]
+#[diesel(belongs_to(User))]
 #[diesel(table_name=kids)]
-pub struct NewKid {
+pub struct KidDto {
     pub name: String,
     pub user_id: i32,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct NewKid {
+    pub name: String,
 }

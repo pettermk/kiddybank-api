@@ -1,8 +1,9 @@
 use diesel::{prelude::*, insert_into};
 use alcoholic_jwt::ValidJWT;
-use crate::models::{User, NewUser, Kid, NewKid};
+use crate::models::{User, NewUser, Kid, NewKid, KidDto};
 use kiddybank_api::establish_connection;
-use crate::schema::users::dsl::{users, kids};
+use crate::schema::users::dsl::users;
+use crate::schema::kids::dsl::kids;
 
 async fn get_user(ext_id: String) -> Option<User> {
     use crate::schema::users::dsl::*;
@@ -59,10 +60,12 @@ pub async fn process_user(jwt: &ValidJWT) -> User {
     }
 }
 
-async fn get_kid(user_id: i32, name: String) -> Option<Kid> {
+async fn get_kid(user: &User, kid_name: String) -> Option<Kid> {
+    use crate::schema::kids::dsl::*;
     let connection = &mut establish_connection();
     let kid = kids
-        .filter(user_id.eq(&user_id), name.eq(&name))
+        .filter(user_id.eq(&user.id))
+        .filter(name.eq(&kid_name))
         .limit(1)
         .load::<Kid>(connection)
         .expect("Error loading users");
@@ -73,16 +76,16 @@ async fn get_kid(user_id: i32, name: String) -> Option<Kid> {
     }
 }
 
-pub async fn create_kid(user: &User, name: String) -> Kid {
+pub async fn create_kid(user: &User, new_kid: &NewKid) -> Kid {
     let connection = &mut establish_connection();
-    let new_kid = NewKid {
-        name: name,
+    let kid_dto = KidDto {
+        name: new_kid.name.clone(),
         user_id: user.id,
     };
 
     insert_into(kids)
-        .values(&new_kid)
+        .values(&kid_dto)
         .execute(connection)
         .expect("User should be inserted");
-    get_kid(user.id, name).await.expect("User has been created")
+    get_kid(&user, new_kid.name.clone()).await.expect("User has been created")
 }
