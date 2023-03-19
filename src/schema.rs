@@ -4,7 +4,6 @@ diesel::table! {
     kids (id) {
         id -> Int4,
         name -> Text,
-        initial_balance -> Float8,
         user_id -> Int4,
     }
 }
