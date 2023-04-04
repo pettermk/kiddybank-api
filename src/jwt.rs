@@ -1,7 +1,11 @@
 use alcoholic_jwt::{JWKS, ValidJWT, Validation, validate, token_kid};
 use reqwest;
 use rocket::serde::json::serde_json;
+use cached::proc_macro::cached;
 
+use std::env;
+
+#[cached]
 async fn get_jwks() -> JWKS {
     let resp =
         reqwest::get("https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/discovery/v2.0/keys")
@@ -26,10 +30,10 @@ pub(crate) async fn process_jwt(token: &str) -> ValidJWT {
         validations = vec![];
     } else {
         validations = vec![
-      Validation::Issuer("https://sts.windows.net/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/".into()),
-      Validation::SubjectPresent,
+            Validation::Issuer("https://sts.windows.net/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/".into()),
+            Validation::SubjectPresent,
             Validation::NotExpired,
-    ];
+        ];
     }
 
     // If a JWKS contains multiple keys, the correct KID first
