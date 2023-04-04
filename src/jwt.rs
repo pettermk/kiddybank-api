@@ -20,12 +20,17 @@ pub(crate) async fn process_jwt(token: &str) -> ValidJWT {
     // the result into the `alcoholic_jwt::JWKS`-struct.
     let jwks: JWKS = get_jwks().await;
 
-    // Several types of built-in validations are provided:
-    let validations = vec![
+    let environment = env::var("ENVIRONMENT").expect("ENVIRONMENT must be set");
+    let validations;
+    if environment == "local" {
+        validations = vec![];
+    } else {
+        validations = vec![
       Validation::Issuer("https://sts.windows.net/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/".into()),
       Validation::SubjectPresent,
-      // Validation::NotExpired,
+            Validation::NotExpired,
     ];
+    }
 
     // If a JWKS contains multiple keys, the correct KID first
     // needs to be fetched from the token headers.
