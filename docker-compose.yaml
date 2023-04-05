@@ -1,7 +1,9 @@
 version: '3.8'
 services:
   db:
-    image: postgres:14.1-alpine
+    image: postgres:alpine
+    # image: cgr.dev/chainguard/postgres
+    # privileged: true
     restart: always
     environment:
       - POSTGRES_USER=kiddybank
