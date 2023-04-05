@@ -14,6 +14,7 @@ diesel::table! {
         ts -> Timestamp,
         change -> Float8,
         kid_id -> Int4,
+        description -> Varchar,
     }
 }
 
