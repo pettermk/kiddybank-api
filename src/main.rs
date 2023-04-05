@@ -74,8 +74,8 @@ fn user(user: User) -> String {
 }
 
 #[post("/kid", data="<name>")]
-fn create_kid(user: User, name: NewKid) -> () {
-    crud::create_kid(&user, &name);
+async fn create_kid(user: User, name: NewKid) -> () {
+    crud::create_kid(&user, &name).await;
 }
 
 #[launch]
