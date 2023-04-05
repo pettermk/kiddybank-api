@@ -60,6 +60,15 @@ pub async fn process_user(jwt: &ValidJWT) -> User {
     }
 }
 
+pub async fn get_kids(user: &User) -> Vec<Kid> {
+    use crate::schema::kids::dsl::*;
+    let connection = &mut establish_connection();
+    kids
+        .filter(user_id.eq(&user.id))
+        .load::<Kid>(connection)
+        .expect("Error loading users")
+}
+
 async fn get_kid(user: &User, kid_name: String) -> Option<Kid> {
     use crate::schema::kids::dsl::*;
     let connection = &mut establish_connection();

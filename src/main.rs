@@ -5,10 +5,11 @@ mod schema;
 
 #[macro_use] extern crate rocket;
 
+use models::Kid;
 use rocket::data::{Data, FromData, self};
 use rocket::http::Status;
 use rocket::request::{Outcome, Request, FromRequest};
-use rocket::serde::json::serde_json;
+use rocket::serde::json::{serde_json, Json};
 use rocket::tokio::io::AsyncReadExt;
 use crate::crud::process_user;
 use crate::models::{User, NewKid};
@@ -73,6 +74,11 @@ fn user(user: User) -> String {
     user.first_name.to_string()
 }
 
+#[get("/kid")]
+async fn get_kids(user: User) -> Json<Vec<Kid>> {
+    Json(crud::get_kids(&user).await)
+}
+
 #[post("/kid", data="<name>")]
 async fn create_kid(user: User, name: NewKid) -> () {
     crud::create_kid(&user, &name).await;
@@ -83,6 +89,7 @@ fn rocket() -> _ {
     rocket::build().mount("/", routes![
         index,
         user,
+        get_kids,
         create_kid,
     ])
 }

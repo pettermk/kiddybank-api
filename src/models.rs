@@ -2,7 +2,7 @@ extern crate rocket;
 
 use std::fmt;
 use diesel::{prelude::*};
-use rocket::serde::Deserialize;
+use rocket::serde::{Deserialize, Serialize};
 use crate::schema::{users, kids};
 
 
@@ -36,7 +36,8 @@ pub struct NewUser {
     pub external_id: String,
 }
 
-#[derive(Identifiable, Queryable, Clone, Debug)]
+#[derive(Identifiable, Queryable, Clone, Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
 pub struct Kid {
     pub id: i32,
     pub name: String,
