@@ -1,9 +1,11 @@
 use diesel::{prelude::*, insert_into};
 use alcoholic_jwt::ValidJWT;
-use crate::models::{User, NewUser, Kid, NewKid, KidDto};
+use crate::models::{User, NewUser, Kid, NewKid, KidDto, TransactionDto, NewTransaction, Transaction};
 use kiddybank_api::establish_connection;
+use chrono::{Utc};
 use crate::schema::users::dsl::users;
 use crate::schema::kids::dsl::kids;
+use crate::schema::transactions::dsl::transactions;
 
 async fn get_user(ext_id: String) -> Option<User> {
     use crate::schema::users::dsl::*;
@@ -85,6 +87,36 @@ async fn get_kid(user: &User, kid_name: String) -> Option<Kid> {
     }
 }
 
+async fn get_kid_by_id(user: &User, kid_db_id: &i32) -> Option<Kid> {
+    use crate::schema::kids::dsl::*;
+    let connection = &mut establish_connection();
+    let kid = kids
+        .filter(user_id.eq(&user.id))
+        .filter(id.eq(&kid_db_id))
+        .limit(1)
+        .load::<Kid>(connection)
+        .expect("Error loading users");
+    println!("{:?}", &kid.first());
+    match kid.len() {
+        0 => None,
+        _ => Some(kid[0].clone()),
+    }
+}
+
+pub async fn get_transactions(user: &User, kid_db_id: &i32) -> Vec<Transaction> {
+    use crate::schema::transactions::dsl::*;
+    let connection = &mut establish_connection();
+    let kid = get_kid_by_id(user, kid_db_id).await;
+    if kid.is_none() {
+        // TODO unauthorized
+        return Vec::new();
+    }
+    transactions
+        .filter(kid_id.eq(&kid_db_id))
+        .load::<Transaction>(connection)
+        .expect("Error loading users")
+}
+
 pub async fn create_kid(user: &User, new_kid: &NewKid) -> Kid {
     let connection = &mut establish_connection();
     let kid_dto = KidDto {
@@ -95,6 +127,26 @@ pub async fn create_kid(user: &User, new_kid: &NewKid) -> Kid {
     insert_into(kids)
         .values(&kid_dto)
         .execute(connection)
-        .expect("User should be inserted");
-    get_kid(&user, new_kid.name.clone()).await.expect("User has been created")
+        .expect("Kid should be inserted");
+    get_kid(&user, new_kid.name.clone()).await.expect("Kid has been created")
+}
+
+pub async fn create_transaction(user: &User, new_transaction: &NewTransaction) -> () {
+    let connection = &mut establish_connection();
+    let kid = get_kid_by_id(user, &new_transaction.kid_id).await;
+    if kid.is_none() {
+        // TODO unauthorized
+        return ();
+    }
+    let transaction_dto =TransactionDto {
+        ts: Utc::now().naive_utc(),
+        change: new_transaction.change,
+        kid_id: new_transaction.kid_id,
+        description: new_transaction.description.clone(),
+    };
+
+    insert_into(transactions)
+        .values(&transaction_dto)
+        .execute(connection)
+        .expect("Transaction should be inserted");
 }

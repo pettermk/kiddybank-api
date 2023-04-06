@@ -5,7 +5,7 @@ mod schema;
 
 #[macro_use] extern crate rocket;
 
-use models::Kid;
+use models::{Kid, NewTransaction, Transaction};
 use rocket::data::{Data, FromData, self};
 use rocket::http::Status;
 use rocket::request::{Outcome, Request, FromRequest};
@@ -63,6 +63,37 @@ impl<'r> FromData<'r> for NewKid {
     }
 }
 
+#[rocket::async_trait]
+impl<'r> FromData<'r> for Kid{
+    type Error = KidError;
+
+    async fn from_data(_req: &'r Request<'_>, data: Data<'r>) -> data::Outcome<'r, Self> {
+        use rocket::outcome::Outcome::*;
+        let mut data = data.open("256 kB".parse().unwrap());
+        let mut string = String::new();
+        data.read_to_string(&mut string).await;
+        match serde_json::from_str::<Kid>(&string) {
+            Ok(kid) => Success(kid),
+            Err(_) => Failure((Status::BadRequest, KidError::Invalid)),
+        }
+    }
+}
+
+#[rocket::async_trait]
+impl<'r> FromData<'r> for NewTransaction {
+    type Error = KidError;
+
+    async fn from_data(_req: &'r Request<'_>, data: Data<'r>) -> data::Outcome<'r, Self> {
+        use rocket::outcome::Outcome::*;
+        let mut data = data.open("256 kB".parse().unwrap());
+        let mut string = String::new();
+        data.read_to_string(&mut string).await;
+        match serde_json::from_str::<NewTransaction>(&string) {
+            Ok(kid) => Success(kid),
+            Err(_) => Failure((Status::BadRequest, KidError::Invalid)),
+        }
+    }
+}
 
 #[get("/")]
 fn index() -> &'static str {
@@ -84,6 +115,16 @@ async fn create_kid(user: User, name: NewKid) -> () {
     crud::create_kid(&user, &name).await;
 }
 
+#[post("/transaction", data="<transaction>")]
+async fn create_transaction(user: User, transaction: NewTransaction) -> () {
+    crud::create_transaction(&user, &transaction).await;
+}
+
+#[get("/transaction?<kid_id>")]
+async fn get_transactions(user: User, kid_id: i32) -> Json<Vec<Transaction>> {
+    Json(crud::get_transactions(&user, &kid_id).await)
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build().mount("/", routes![
@@ -91,5 +132,7 @@ fn rocket() -> _ {
         user,
         get_kids,
         create_kid,
+        create_transaction,
+        get_transactions,
     ])
 }
