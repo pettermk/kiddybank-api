@@ -32,11 +32,11 @@ async fn create_user(jwt: &ValidJWT) -> User {
     let last_name = jwt.claims.get("family_name")
         .expect("Family name should be in token")
         .as_str()
-        .expect("Token should have family name");
-    let external_id = jwt.claims.get("oid")
-        .expect("Family name should be in token")
+        .expect("Family name should be in token");
+    let external_id = jwt.claims.get("sub")
+        .expect("Need sub field for external id")
         .as_str()
-        .expect("Token should have family name");
+        .expect("Need sub field for external id");
     let new_user = NewUser {
         first_name: String::from(first_name),
         last_name: String::from(last_name),
@@ -51,8 +51,8 @@ async fn create_user(jwt: &ValidJWT) -> User {
 }
 
 pub async fn process_user(jwt: &ValidJWT) -> User {
-    let uid = jwt.claims.get(String::from("oid")).expect("JWT should have uid");
-    let uid = uid.as_str().expect("Uid should be string");
+    let uid = jwt.claims.get(String::from("sub")).expect("JWT should have sub");
+    let uid = uid.as_str().expect("Sub should be string");
 
     let user: Option<User> = get_user(String::from(uid)).await;
     print!("{:?}", user);

@@ -8,7 +8,7 @@ use std::env;
 #[cached]
 async fn get_jwks() -> JWKS {
     let resp =
-        reqwest::get("https://login.microsoftonline.com/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/discovery/v2.0/keys")
+        reqwest::get("https://www.googleapis.com/oauth2/v3/certs")
         .await
         .unwrap()
         .text()
@@ -30,7 +30,7 @@ pub(crate) async fn process_jwt(token: &str) -> ValidJWT {
         validations = vec![];
     } else {
         validations = vec![
-            Validation::Issuer("https://sts.windows.net/3aa4a235-b6e2-48d5-9195-7fcf05b459b0/".into()),
+            Validation::Issuer("https://accounts.google.com".into()),
             Validation::SubjectPresent,
             Validation::NotExpired,
         ];
