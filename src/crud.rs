@@ -1,6 +1,6 @@
 use diesel::{prelude::*, insert_into};
 use alcoholic_jwt::ValidJWT;
-use crate::models::{User, NewUser, Kid, NewKid, KidDto, TransactionDto, NewTransaction, Transaction};
+use crate::models::{User, NewUser, Kid, NewKid, KidDto, TransactionDto, NewTransaction, Transaction, KidWithBalance};
 use kiddybank_api::establish_connection;
 use chrono::{Utc};
 use crate::schema::users::dsl::users;
@@ -62,13 +62,38 @@ pub async fn process_user(jwt: &ValidJWT) -> User {
     }
 }
 
-pub async fn get_kids(user: &User) -> Vec<Kid> {
+async fn get_balance(kid: &Kid) -> f64 {
+    use crate::schema::transactions::dsl::*;
+    let connection = &mut establish_connection();
+    let balance = transactions
+        .filter(kid_id.eq(&kid.id))
+        .select(diesel::dsl::sum(change))
+        .first::<Option<f64>>(connection)
+        .expect("Error loading transactions");
+    match balance {
+        Some(b) => b,
+        None => 0.0,
+    }
+}
+
+pub async fn get_kids_with_balance(user: &User) -> Vec<KidWithBalance> {
     use crate::schema::kids::dsl::*;
     let connection = &mut establish_connection();
-    kids
+    let all_kids = kids
         .filter(user_id.eq(&user.id))
         .load::<Kid>(connection)
-        .expect("Error loading users")
+        .expect("Error loading users");
+    let mut retval: Vec<KidWithBalance> = Vec::new();
+    for kid in all_kids {
+        let balance = get_balance(&kid).await;
+        retval.push(KidWithBalance {
+            id: kid.id,
+            name: kid.name,
+            user_id: kid.user_id,
+            balance: balance,
+        });
+    }
+    retval
 }
 
 async fn get_kid(user: &User, kid_name: String) -> Option<Kid> {

@@ -5,7 +5,7 @@ mod schema;
 
 #[macro_use] extern crate rocket;
 
-use models::{Kid, NewTransaction, Transaction};
+use models::{Kid, NewTransaction, Transaction, KidWithBalance};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::data::{Data, FromData, self};
 use rocket::http::{Status, Header};
@@ -108,8 +108,8 @@ fn user(user: User) -> String {
 }
 
 #[get("/kid")]
-async fn get_kids(user: User) -> Json<Vec<Kid>> {
-    Json(crud::get_kids(&user).await)
+async fn get_kids(user: User) -> Json<Vec<KidWithBalance>> {
+    Json(crud::get_kids_with_balance(&user).await)
 }
 
 #[post("/kid", data="<name>")]

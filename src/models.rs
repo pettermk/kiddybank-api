@@ -51,6 +51,15 @@ impl fmt::Display for Kid {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(crate = "rocket::serde")]
+pub struct KidWithBalance {
+    pub id: i32,
+    pub name: String,
+    pub user_id: i32,
+    pub balance: f64,
+}
+
 #[derive(Insertable, Associations, Queryable, Clone, Debug, Deserialize)]
 #[diesel(belongs_to(User))]
 #[diesel(table_name=kids)]
